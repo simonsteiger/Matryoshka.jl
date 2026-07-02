@@ -10,9 +10,11 @@ include("families/normal.jl")
 include("families/bernoulli.jl")
 include("families/poisson.jl")
 include("priors.jl")
+include("likelihood.jl")
 
 export Family, NormalFamily, BernoulliFamily, PoissonFamily
 export parameters, links, default_priors, obsmodel
 export @priors, Priors
+export @likelihood, Likelihood
 
 end
