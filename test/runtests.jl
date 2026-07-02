@@ -7,4 +7,5 @@ using Aqua
         Aqua.test_all(Matryoshka; stale_deps = (ignore = [:Turing, :StatsModels, :Tables],))
     end
     include("families.jl")
+    include("priors.jl")
 end
