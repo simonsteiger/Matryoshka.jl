@@ -5,9 +5,10 @@ Chains returned by `sample`/`predict` are **FlexiChains** (not MCMCChains) — `
 returns `Parameter(varname)` / `Extra(:name)` entries; a `Parameter` can hold a
 vector-valued VarName as a single entry (see Q3).
 
-All snippets below were run verbatim in the project REPL (`using Turing` already
-loaded `DynamicPPL` as a dependency, but `DynamicPPL` must additionally be
-`using`'d directly to call `DynamicPPL.prefix` unqualified without errors from `Main`).
+All snippets below were run verbatim in the project REPL. Note: `using Turing`
+loads DynamicPPL internally but does not bind the module name `DynamicPPL` in the
+current scope, so qualified calls like `DynamicPPL.prefix(...)` fail with
+`UndefVarError` until you also run `using DynamicPPL`.
 
 ## Q1 — manual prefixing API
 
@@ -42,6 +43,9 @@ for `Val(:g)` or the `to_submodel(inner(), true)` LHS-naming fallback.
 **Verdict: WORKS** (primary incantation, no fallback needed).
 
 ```julia
+using Turing
+using DynamicPPL
+
 @model function sum_contribs(ms::Tuple)
     c ~ to_submodel(first(ms), false)
     if length(ms) == 1
