@@ -9,4 +9,5 @@ using Aqua
     include("families.jl")
     include("priors.jl")
     include("likelihood.jl")
+    include("components.jl")
 end
