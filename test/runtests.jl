@@ -1,10 +1,9 @@
-using Nutshell
+using Matryoshka
 using Test
 using Aqua
 
-@testset "Nutshell.jl" begin
-    @testset "Code quality (Aqua.jl)" begin
-        Aqua.test_all(Nutshell)
+@testset "Matryoshka.jl" begin
+    @testset "Aqua" begin
+        Aqua.test_all(Matryoshka; stale_deps = (ignore = [:Turing, :StatsModels, :Tables],))
     end
-    # Write your tests here.
 end
