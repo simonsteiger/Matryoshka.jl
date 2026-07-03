@@ -54,7 +54,10 @@ end
 @model function core_model(recipe, submodels, ilink, obs, fam_priors, y)
     η ~ to_submodel(sum_contribs(submodels), false)
     μ = ilink.(η)
-    v ~ to_submodel(obs(μ, fam_priors, y), false)
+    # obsmodels receive the link-scale linear predictor η and apply their own
+    # inverse link internally (e.g. BernoulliLogit) — numerically safer than
+    # constructing distributions from a mean that can saturate in Float64.
+    v ~ to_submodel(obs(η, fam_priors, y), false)
     return (; η, μ)
 end
 

@@ -4,11 +4,11 @@ parameters(::BernoulliFamily) = (:mu,)
 links(::BernoulliFamily) = (mu = :logit,)
 default_priors(::BernoulliFamily) = NamedTuple()
 
-@model function bernoulli_obs(mu, priors, y)
-    # check_args=false: mu can saturate to exactly 0.0/1.0 in Float64 for extreme
-    # linear predictors reached during NUTS step-size search; these are valid
-    # boundary probabilities and must not throw DomainError mid-sampling.
-    y ~ product_distribution(Bernoulli.(mu; check_args = false))
+# obsmodels receive the link-scale linear predictor eta. BernoulliLogit works
+# on the log-odds scale directly, so extreme eta never saturates to p == 1.0
+# (which would trip Bernoulli's check_args under ForwardDiff Duals).
+@model function bernoulli_obs(eta, priors, y)
+    y ~ product_distribution(BernoulliLogit.(eta))
     return nothing
 end
 obsmodel(::BernoulliFamily) = bernoulli_obs

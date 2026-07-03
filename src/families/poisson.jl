@@ -4,8 +4,8 @@ parameters(::PoissonFamily) = (:mu,)
 links(::PoissonFamily) = (mu = :log,)
 default_priors(::PoissonFamily) = NamedTuple()
 
-@model function poisson_obs(mu, priors, y)
-    y ~ product_distribution(Poisson.(mu))
+@model function poisson_obs(eta, priors, y)
+    y ~ product_distribution(Poisson.(exp.(eta)))
     return nothing
 end
 obsmodel(::PoissonFamily) = poisson_obs

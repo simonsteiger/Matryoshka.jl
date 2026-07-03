@@ -17,24 +17,31 @@ using Test
 end
 
 @testset "obsmodel logjoint equality vs handwritten" begin
+    # obsmodels receive the link-scale linear predictor eta and apply their
+    # own inverse link internally; the handwritten side uses mean-scale
+    # parameters, so the comparison also covers the link inversion.
     y = [0.5, 1.2, -0.3]
-    mu = [0.4, 1.0, 0.0]
-    m = obsmodel(NormalFamily())(mu, (sigma = Exponential(1),), y)
+    eta = [0.4, 1.0, 0.0]  # identity link: mu == eta
+    m = obsmodel(NormalFamily())(eta, (sigma = Exponential(1),), y)
     @model function hand(mu, y)
         sigma ~ Exponential(1)
         y ~ product_distribution(Normal.(mu, sigma))
     end
     for sigma in (0.5, 1.0, 2.0)
-        @test logjoint(m, (; sigma)) ≈ logjoint(hand(mu, y), (; sigma))
+        @test logjoint(m, (; sigma)) ≈ logjoint(hand(eta, y), (; sigma))
     end
 
     yb = [0, 1, 1]
-    mb = obsmodel(BernoulliFamily())([0.2, 0.7, 0.9], NamedTuple(), yb)
+    pb = [0.2, 0.7, 0.9]
+    etab = log.(pb ./ (1 .- pb))  # logit link
+    mb = obsmodel(BernoulliFamily())(etab, NamedTuple(), yb)
     @model handb(p, y) = y ~ product_distribution(Bernoulli.(p))
-    @test logjoint(mb, NamedTuple()) ≈ logjoint(handb([0.2, 0.7, 0.9], yb), NamedTuple())
+    @test logjoint(mb, NamedTuple()) ≈ logjoint(handb(pb, yb), NamedTuple())
 
     yp = [0, 2, 5]
-    mp = obsmodel(PoissonFamily())([0.5, 1.0, 4.0], NamedTuple(), yp)
+    lp = [0.5, 1.0, 4.0]
+    etap = log.(lp)  # log link
+    mp = obsmodel(PoissonFamily())(etap, NamedTuple(), yp)
     @model handp(l, y) = y ~ product_distribution(Poisson.(l))
-    @test logjoint(mp, NamedTuple()) ≈ logjoint(handp([0.5, 1.0, 4.0], yp), NamedTuple())
+    @test logjoint(mp, NamedTuple()) ≈ logjoint(handp(lp, yp), NamedTuple())
 end
