@@ -15,11 +15,14 @@ include("components/interface.jl")
 include("components/intercept.jl")
 include("components/fixedeffects.jl")
 include("components/randomintercept.jl")
+include("lowering.jl")
+include("model.jl")
 
 export Family, NormalFamily, BernoulliFamily, PoissonFamily
 export parameters, links, default_priors, obsmodel
 export @priors, Priors
 export @likelihood, Likelihood
 export AbstractComponent
+export model
 
 end
