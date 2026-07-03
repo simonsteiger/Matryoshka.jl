@@ -64,6 +64,36 @@ end
 maybe_prefix(m, ::Nothing) = m
 maybe_prefix(m, s::Symbol) = DynamicPPL.prefix(m, s)   # spike Q1: bare Symbol, no Val() needed
 
+"""
+    model(lik::Likelihood, pri::Priors, tbl) -> DynamicPPL.Model
+
+Build a plain `DynamicPPL.Model` from a `@likelihood` spec, a `@priors` spec,
+and a Tables.jl-compatible data source `tbl`. Applies the `StatsModels` schema,
+lowers each formula term into a component, resolves priors (exact target >
+class target > component default > family default), and wires everything into
+one model via `to_submodel`. The recipe (components, schema, family, resolved
+priors) travels inside `m.args.recipe`, so `model(m, newdata)` can rebuild it
+later.
+
+Errors at `model()` time — never at sampling time — on: unknown prior targets,
+formula variables missing from `tbl`, formulas on a parameter the family
+lacks, or a predictor-less formula.
+
+# Example
+```julia
+using Matryoshka, Distributions, Turing
+
+df = (y = [1.1, 2.3, 0.9, 1.8], x = [0.5, 1.0, 0.2, 0.9])
+lik = @likelihood Normal y ~ x
+pri = @priors begin
+    intercept ~ Normal(0, 10)
+    b ~ Normal(0, 1)
+    sigma ~ Exponential(1)
+end
+m = model(lik, pri, df)
+chain = sample(m, NUTS(), 100; progress = false)
+```
+"""
 function model(lik::Likelihood, pri::Priors, tbl)
     components, y, sch = lower(lik, tbl)
     comp_priors, fam_priors, unmatched = resolve_priors(pri, components, lik.family)
@@ -84,6 +114,35 @@ function model(lik::Likelihood, pri::Priors, tbl)
     )
 end
 
+"""
+    model(m::DynamicPPL.Model, newdata) -> DynamicPPL.Model
+
+Rebuild `m` — a model previously returned by `model(lik, pri, tbl)` — against
+`newdata`, reusing the recipe stored in `m.args.recipe` (same components,
+schema, and resolved priors; grouping variables enforce training-time factor
+levels and reject unseen ones). If `newdata` has no response column, the
+rebuilt model's `y` is `missing`, ready for `Turing.predict`. If it does have
+the response column, the rebuilt model is fit-ready (a refit-on-new-data
+workflow).
+
+# Example
+```julia
+using Matryoshka, Distributions, Turing
+
+df = (y = [1.1, 2.3, 0.9, 1.8], x = [0.5, 1.0, 0.2, 0.9])
+lik = @likelihood Normal y ~ x
+pri = @priors begin
+    intercept ~ Normal(0, 10)
+    b ~ Normal(0, 1)
+    sigma ~ Exponential(1)
+end
+m = model(lik, pri, df)
+chain = sample(m, NUTS(), 100; progress = false)
+
+m_new = model(m, (x = [0.4, 1.2],))   # no y column → predict-mode
+preds = predict(m_new, chain)
+```
+"""
 function model(m::DynamicPPL.Model, newdata)
     r = m.args.recipe
     cols = Tables.columntable(newdata)
@@ -102,6 +161,30 @@ function model(m::DynamicPPL.Model, newdata)
     )
 end
 
+"""
+    default_priors(lik::Likelihood, tbl) -> Vector{<:NamedTuple}
+
+Resolve the full prior table for `lik` against data `tbl`, without fitting.
+Returns a vector of `(target, class, prior)` rows — one per parameter the
+model introduces (each component's slots, then the family's own parameters) —
+with `target` and `class` as dotted-name strings (e.g. `"b.x"`, `"g.sd"`) and
+`prior` the resolved `Distributions.jl` default. Mirrors brms' `default_prior()`:
+inspect before writing a `@priors` block, or to confirm what a partial
+`@priors` block leaves untouched.
+
+See also the `default_priors(f::Family)` method, which returns only a family's
+own parameter defaults (as a `NamedTuple`, not a table).
+
+# Example
+```julia
+using Matryoshka, Distributions
+
+df = (y = [1.0, 2.0, 3.0], x = [0.1, 0.2, 0.3], g = ["a", "b", "a"])
+lik = @likelihood Normal y ~ x + (1 | g)
+tab = default_priors(lik, df)
+[r.target for r in tab]   # ["intercept", "g.sd", "b.x", "sigma"]
+```
+"""
 function default_priors(lik::Likelihood, tbl)
     components, _, _ = lower(lik, tbl)
     rows = @NamedTuple{target::String, class::String, prior::Distribution}[]

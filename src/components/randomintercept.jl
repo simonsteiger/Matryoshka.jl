@@ -1,3 +1,22 @@
+"""
+    RandomIntercept(group::Symbol, idx::Vector{Int}, levels::Vector) <: AbstractComponent
+
+Group-level (random) intercept component for one grouping variable — `(1 | group)`
+in formula syntax. Uses a non-centered parameterisation: samples `sd` (from its
+prior, default `Exponential(1)`) and `z ~ filldist(Normal(), nlevels)`,
+returning `(sd .* z)[idx]`. `idx` maps each observation to its group's position
+in `levels`; `levels` are the training-time factor levels, enforced (not
+extended) on `rebuild` — a new level in `newdata` raises an `ArgumentError`.
+
+# Example
+```julia
+using Matryoshka
+using Matryoshka: RandomIntercept, compprefix
+
+c = RandomIntercept(:g, [1, 1, 2], ["a", "b"])
+compprefix(c) === :g
+```
+"""
 struct RandomIntercept <: AbstractComponent
     group::Symbol
     idx::Vector{Int}
