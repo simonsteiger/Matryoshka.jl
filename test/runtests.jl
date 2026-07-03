@@ -11,4 +11,5 @@ using Aqua
     include("likelihood.jl")
     include("components.jl")
     include("model.jl")
+    include("introspection.jl")
 end

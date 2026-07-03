@@ -83,3 +83,15 @@ function model(lik::Likelihood, pri::Priors, tbl)
         obsmodel(lik.family), fam_priors, y,
     )
 end
+
+function default_priors(lik::Likelihood, tbl)
+    components, _, _ = lower(lik, tbl)
+    rows = @NamedTuple{target::String, class::String, prior::Distribution}[]
+    for c in components, (exact, class, default) in priorslots(c)
+        push!(rows, (target = join(exact, "."), class = join(class, "."), prior = default))
+    end
+    for (p, d) in pairs(default_priors(lik.family))
+        push!(rows, (target = String(p), class = String(p), prior = d))
+    end
+    return rows
+end
