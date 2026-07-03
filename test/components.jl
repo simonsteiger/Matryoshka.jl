@@ -2,6 +2,8 @@ using Matryoshka
 using Matryoshka: Intercept, FixedEffects, RandomIntercept,
     compprefix, submodel, priorslots, rebuild
 using Distributions, DynamicPPL, Turing, Test
+using StatsModels: StatsModels
+using Tables: Tables
 
 @testset "Intercept" begin
     c = Intercept(4)
@@ -45,4 +47,42 @@ end
     @test logjoint(m, θ) ≈ logjoint(hand([1, 1, 2, 3], 3), θ)
     @test priorslots(c)[1][1] == (:g, :sd)
     @test priorslots(c)[1][2] == (:sd,)
+end
+
+@testset "rebuild" begin
+    @testset "Intercept" begin
+        c2 = rebuild(Intercept(4), (y = [1.0, 2.0],))
+        @test c2 isa Intercept
+        @test c2.n == 2
+    end
+
+    @testset "RandomIntercept" begin
+        c = RandomIntercept(:g, [1, 1, 2, 3], ["a", "b", "c"])
+        c2 = rebuild(c, (g = ["c", "a", "a"],))
+        @test c2.idx == [3, 1, 1]
+        @test c2.group === :g
+        @test c2.levels == ["a", "b", "c"]
+        @test_throws ArgumentError rebuild(c, (g = ["a", "d"],))
+        err = try
+            rebuild(c, (g = ["a", "d"],))
+        catch e
+            e
+        end
+        @test occursin(":g", err.msg)
+        @test occursin("not yet supported", err.msg)
+    end
+
+    @testset "FixedEffects" begin
+        tbl0 = (y = [1.0, 2.0, 3.0], x1 = [0.5, 1.5, 2.5], x2 = [1.0, 0.0, 1.0])
+        f = StatsModels.@formula(y ~ 0 + x1 + x2)
+        sch = StatsModels.apply_schema(f, StatsModels.schema(f, tbl0), StatsModels.StatisticalModel)
+        term = sch.rhs
+        c = FixedEffects(Matrix{Float64}(StatsModels.modelcols(term, tbl0)), [:x1, :x2], term)
+        tbl1 = (y = [0.0, 0.0], x1 = [2.0, 4.0], x2 = [1.0, 1.0])
+        c2 = rebuild(c, tbl1)
+        @test c2.X == [2.0 1.0; 4.0 1.0]
+        @test c2.X == Matrix{Float64}(StatsModels.modelcols(term, Tables.columntable(tbl1)))
+        @test c2.names == [:x1, :x2]
+        @test c2.term === term
+    end
 end

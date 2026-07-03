@@ -26,5 +26,5 @@ function rebuild(c::RandomIntercept, tbl)
         )
         i
     end
-    return RandomIntercept(c.group, collect(idx), c.levels)
+    return RandomIntercept(c.group, idx, c.levels)
 end
