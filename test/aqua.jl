@@ -1,0 +1,7 @@
+using Matryoshka
+using Test
+using Aqua
+
+@testset "Aqua" begin
+    Aqua.test_all(Matryoshka; stale_deps = (ignore = [:Turing, :StatsModels, :Tables],))
+end
