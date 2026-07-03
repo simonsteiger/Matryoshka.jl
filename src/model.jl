@@ -7,12 +7,10 @@ struct Recipe{L <: Likelihood, P <: Priors, C <: Tuple, S}
 end
 
 function resolve_priors(pri::Priors, components::Tuple, fam::Family)
-    matched = Set{Tuple{Vararg{Symbol}}}()
     comp_priors = map(components) do c
         slots = priorslots(c)
         dists = map(slots) do (exact, class, default)
             d = lookup(pri, exact, class)
-            d === nothing || push!(matched, exact, class)
             something(d, default)
         end
         c isa FixedEffects ? collect(dists) : only(dists)
@@ -24,7 +22,6 @@ function resolve_priors(pri::Priors, components::Tuple, fam::Family)
     dp = default_priors(fam)
     fam_vals = map(collect(pairs(dp))) do (p, default)
         d = lookup(pri, (p,), (p,))
-        d === nothing || push!(matched, (p,))
         something(d, default)
     end
     fam_priors = NamedTuple{keys(dp)}(Tuple(fam_vals))

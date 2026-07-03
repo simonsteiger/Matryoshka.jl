@@ -63,5 +63,11 @@ function lower(lik::Likelihood, tbl)
         names isa Vector || (names = [names])
         push!(comps, FixedEffects(X, names, mt))
     end
+    isempty(comps) && throw(
+        ArgumentError(
+            "model has no predictor terms; formula `$(f)` has no intercept, fixed, or " *
+                "random effect to build a model from"
+        )
+    )
     return Tuple(comps), collect(y), sch
 end

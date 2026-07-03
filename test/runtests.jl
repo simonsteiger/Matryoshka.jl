@@ -12,4 +12,5 @@ using Aqua
     include("components.jl")
     include("model.jl")
     include("introspection.jl")
+    include("errors.jl")
 end
