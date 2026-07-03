@@ -61,4 +61,27 @@ df = (y = [1.0, 2.0], x = [0.1, 0.2], g = ["a", "b"])
     end
     @test err5 isa ArgumentError
     @test occursin("no predictor", err5.msg)
+
+    # transformed response rejected clearly (v0): rebuild path re-collects the raw
+    # column, not the transform, so silently allowing this would train on log(y) but
+    # predict/refit on y — reject at model()-time instead
+    lik6 = @likelihood Normal log(y) ~ x
+    err6 = try
+        model(lik6, @priors(b ~ Normal(0, 1)), df); nothing
+    catch e
+        e
+    end
+    @test err6 isa ArgumentError
+    @test occursin("untransformed", err6.msg)
+
+    # multivariate response rejected clearly (v0): must fail at model()-time, not
+    # later at sampling time with a garbage `n`/`response`
+    lik7 = @likelihood Normal x + y ~ x
+    err7 = try
+        model(lik7, @priors(b ~ Normal(0, 1)), df); nothing
+    catch e
+        e
+    end
+    @test err7 isa ArgumentError
+    @test occursin("untransformed", err7.msg)
 end

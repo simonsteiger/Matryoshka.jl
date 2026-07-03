@@ -32,6 +32,13 @@ end
     @test lookup(p, (:b, :z), (:b,)) == Normal(0, 1)     # class fallback
     @test lookup(p, (:g, :sd), (:sd,)) == Exponential(1)
     @test lookup(p, (:h, :tau), (:tau,)) === nothing
+
+    # same-path tie-break: within one tier, the later spec wins
+    p2 = @priors begin
+        b.x ~ Normal(0, 1)
+        b.x ~ Normal(0, 5)
+    end
+    @test lookup(p2, (:b, :x), (:b,)) == Normal(0, 5)
 end
 
 @testset "@priors rejects non-tilde lines" begin

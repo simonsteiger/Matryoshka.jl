@@ -1,5 +1,5 @@
 using Matryoshka
-using Distributions, DynamicPPL, Turing, StatsModels, StableRNGs, Statistics, Test
+using Distributions, DynamicPPL, Turing, StableRNGs, Statistics, Test
 using Logging: Logging
 include("testutils.jl")
 using .MatryoshkaTestUtils: check_numerical, resolve_param, two_sample_ks

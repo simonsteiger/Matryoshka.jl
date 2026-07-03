@@ -25,8 +25,15 @@ extra_formulas(lik::Likelihood) = Base.tail(lik.formulas)
 function formula_line(ex)
     Meta.isexpr(ex, :call, 3) && ex.args[1] === :~ ||
         error("@likelihood: each line must be `lhs ~ rhs`, got `$(ex)`")
-    # Delegate to StatsModels' own parser so (1 | g) etc. parse identically to @formula
-    return :(StatsModels.@formula($(ex.args[2]) ~ $(ex.args[3])))
+    # Delegate to StatsModels' own parser so (1 | g) etc. parse identically to @formula.
+    # Build the macrocall with a GlobalRef to StatsModels' @formula (rather than the
+    # unqualified `StatsModels.@formula(...)` quoted form) so it resolves even when the
+    # caller's module has no `StatsModels` binding of its own — `esc(...)` only protects
+    # hygiene, it does not import bindings into the caller's scope.
+    return Expr(
+        :macrocall, GlobalRef(StatsModels, Symbol("@formula")),
+        LineNumberNode(@__LINE__, Symbol(@__FILE__)), :($(ex.args[2]) ~ $(ex.args[3])),
+    )
 end
 
 """

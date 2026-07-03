@@ -23,6 +23,7 @@ export parameters, links, default_priors, obsmodel
 export @priors, Priors
 export @likelihood, Likelihood
 export AbstractComponent
+export compprefix, submodel, priorslots, rebuild
 export model
 
 end

@@ -38,6 +38,19 @@ function lower(lik::Likelihood, tbl)
     cols = Tables.columntable(tbl)
     f = response_formula(lik)
     check_columns(StatsModels.termvars(f), cols)
+    # A bare column reference (`y`) parses to a plain `Term`; a transformed response
+    # (`log(y)`) parses to a `FunctionTerm`, and a multivariate response (`y1 + y2`)
+    # parses to a `Tuple` of `Term`s. Neither is supported in v0 — catch both here,
+    # at model()-time, rather than silently building a wrong model (transformed: the
+    # rebuild path re-collects the raw column, not the transform) or failing later at
+    # sampling time (multivariate: `response` picks one column, wrong `n`).
+    f.lhs isa StatsModels.Term || throw(
+        ArgumentError(
+            "left-hand side of the response formula must be a single, untransformed " *
+                "column; transformed responses (e.g. `log(y) ~ x`) and multivariate " *
+                "responses (e.g. `y1 + y2 ~ x`) are not supported in v0, got `$(f.lhs)`"
+        )
+    )
     sch = StatsModels.schema(f, cols)
     fc = StatsModels.apply_schema(f, sch, MatryoshkaCtx)
     y = StatsModels.modelcols(fc.lhs, cols)
