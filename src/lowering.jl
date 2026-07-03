@@ -16,6 +16,18 @@ function StatsModels.apply_schema(
     return GroupTerm(rhs.sym)
 end
 
+function check_columns(vars, cols)
+    for v in vars
+        haskey(cols, v) || throw(
+            ArgumentError(
+                "variable :$v from the formula is not a column of the data; " *
+                    "available columns: $(collect(keys(cols)))"
+            )
+        )
+    end
+    return nothing
+end
+
 function lower(lik::Likelihood, tbl)
     isempty(extra_formulas(lik)) || throw(
         ArgumentError(
@@ -25,14 +37,7 @@ function lower(lik::Likelihood, tbl)
     )
     cols = Tables.columntable(tbl)
     f = response_formula(lik)
-    for v in StatsModels.termvars(f)
-        haskey(cols, v) || throw(
-            ArgumentError(
-                "variable :$v from the formula is not a column of the data; " *
-                    "available columns: $(collect(keys(cols)))"
-            )
-        )
-    end
+    check_columns(StatsModels.termvars(f), cols)
     sch = StatsModels.schema(f, cols)
     fc = StatsModels.apply_schema(f, sch, MatryoshkaCtx)
     y = StatsModels.modelcols(fc.lhs, cols)

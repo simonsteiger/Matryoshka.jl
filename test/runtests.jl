@@ -13,4 +13,5 @@ using Aqua
     include("model.jl")
     include("introspection.jl")
     include("errors.jl")
+    include("predict.jl")
 end

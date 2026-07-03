@@ -81,6 +81,24 @@ function model(lik::Likelihood, pri::Priors, tbl)
     )
 end
 
+function model(m::DynamicPPL.Model, newdata)
+    r = m.args.recipe
+    cols = Tables.columntable(newdata)
+    # only the predictor (RHS) variables are required; the response may be absent
+    # (predict-mode: y becomes `missing` below) — unlike `lower`, which also
+    # requires the response since it is building the training model.
+    check_columns(StatsModels.termvars(response_formula(r.lik).rhs), cols)
+    components = map(c -> rebuild(c, cols), r.components)
+    comp_priors, fam_priors, _ = resolve_priors(r.pri, components, r.lik.family)
+    submodels = map((c, p) -> maybe_prefix(submodel(c, p), compprefix(c)), components, comp_priors)
+    y = haskey(cols, r.response) ? collect(Tables.getcolumn(cols, r.response)) : missing
+    recipe = Recipe(r.lik, r.pri, components, r.schema, r.response)
+    return core_model(
+        recipe, submodels, predictor_invlink(r.lik.family),
+        obsmodel(r.lik.family), fam_priors, y,
+    )
+end
+
 function default_priors(lik::Likelihood, tbl)
     components, _, _ = lower(lik, tbl)
     rows = @NamedTuple{target::String, class::String, prior::Distribution}[]
