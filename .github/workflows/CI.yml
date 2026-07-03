@@ -30,6 +30,12 @@ jobs:
           - ubuntu-latest
         arch:
           - x64
+        group:
+          - Core
+          - Recovery
+          - Static
+    env:
+      GROUP: ${{ matrix.group }}
     steps:
       - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v3

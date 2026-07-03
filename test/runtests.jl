@@ -19,7 +19,7 @@ const GROUP = get(ENV, "GROUP", "All")
     end
     if GROUP in ("All", "Static")
         include("aqua.jl")
-        isfile(joinpath(@__DIR__, "jet.jl")) && include("jet.jl")   # Task 12
-        isfile(joinpath(@__DIR__, "ad.jl")) && include("ad.jl")     # Task 12
+        include("jet.jl")
+        include("ad.jl")
     end
 end
