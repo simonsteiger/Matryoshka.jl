@@ -8,6 +8,14 @@ functions: `compprefix`, `submodel`, `priorslots`, `rebuild`. New term types
 (e.g. Gaussian-process or smooth terms) are added by subtyping
 `AbstractComponent`, implementing these four, and adding a `lower` dispatch
 (see `src/lowering.jl`) that turns a matching formula term into the component.
+
+# Example
+```julia
+using Matryoshka
+using Matryoshka: Intercept
+
+Intercept(4) isa AbstractComponent
+```
 """
 abstract type AbstractComponent end
 

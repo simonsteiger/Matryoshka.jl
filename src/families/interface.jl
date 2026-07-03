@@ -7,6 +7,13 @@ links, default priors, and observation submodel via `parameters`, `links`,
 `default_priors`, and `obsmodel`. New families are added by subtyping `Family`
 and implementing these four functions, plus a `to_family` dispatch (from the
 `Distributions.jl` type name used as the first argument to `@likelihood`).
+
+# Example
+```julia
+using Matryoshka
+
+NormalFamily() isa Family
+```
 """
 abstract type Family end
 
