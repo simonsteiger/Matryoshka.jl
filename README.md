@@ -10,7 +10,7 @@ Matryoshka is a thin front-end, not a modeling engine of its own.
 
 The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(likelihood, priors, data)` lowers them into nested `DynamicPPL` submodels.
 
-Everything downstream is for the inference backend to take care of (this very early version only tests Turing!).
+Everything downstream is for the inference backend to take care of (tested only on Turing!).
 
 ## Quickstart
 
