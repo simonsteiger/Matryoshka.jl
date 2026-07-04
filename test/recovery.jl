@@ -44,7 +44,7 @@ end
 end
 
 @testset "bernoulli recovery" begin
-    n = 100
+    n = 300
     x = randn(rng, n)
     p = @. inv(1 + exp(-(0.3 + 1.0 * x)))
     y = rand.(rng, Bernoulli.(p))
@@ -57,7 +57,7 @@ end
 
 @testset "random intercept recovery + KS predict vs handwritten" begin
     rng2 = StableRNG(42)
-    ngroups, nper = 4, 25
+    ngroups, nper = 30, 10
     g = repeat(string.(1:ngroups); inner = nper)
     u = 0.8 .* randn(rng2, ngroups)
     x = randn(rng2, ngroups * nper)

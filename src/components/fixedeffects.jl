@@ -32,7 +32,7 @@ priorslots(c::FixedEffects) =
 # spike Q3 verdict (test/spike_notes.md): dict-style `b[n] ~ p` fails in DynamicPPL;
 # arraydist fallback yields a single vector-valued VarName `b` (not `b[1]`/`b[2]`).
 @model function fe_submodel(X, priors)
-    b ~ arraydist(priors)
+    b ~ product_distribution(priors)
     return X * b
 end
 submodel(c::FixedEffects, priors::Vector) = fe_submodel(c.X, priors)
