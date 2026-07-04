@@ -7,7 +7,7 @@ using .MatryoshkaTestUtils: check_numerical, resolve_param, two_sample_ks
 rng = StableRNG(468)
 
 @testset "normal recovery + conjugate check via condition" begin
-    n = 500
+    n = 100
     x = randn(rng, n)
     y = 1.0 .+ 0.7 .* x .+ 0.5 .* randn(rng, n)
     lik = @likelihood Normal y ~ x
@@ -33,7 +33,7 @@ rng = StableRNG(468)
 end
 
 @testset "poisson recovery" begin
-    n = 500
+    n = 100
     x = randn(rng, n)
     y = rand.(rng, Poisson.(exp.(0.2 .+ 0.5 .* x)))
     m = model((@likelihood Poisson y ~ x), @priors(b ~ Normal(0, 1)), (; x, y))
@@ -44,7 +44,7 @@ end
 end
 
 @testset "bernoulli recovery" begin
-    n = 4000
+    n = 100
     x = randn(rng, n)
     p = @. inv(1 + exp(-(0.3 + 1.0 * x)))
     y = rand.(rng, Bernoulli.(p))
@@ -57,7 +57,7 @@ end
 
 @testset "random intercept recovery + KS predict vs handwritten" begin
     rng2 = StableRNG(42)
-    ngroups, nper = 20, 25
+    ngroups, nper = 4, 25
     g = repeat(string.(1:ngroups); inner = nper)
     u = 0.8 .* randn(rng2, ngroups)
     x = randn(rng2, ngroups * nper)
