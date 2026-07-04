@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "Matryoshka.jl"
-  tagline: Compose submodels to build probabilistic models
+  tagline: A brms-like interface to probabilistic modelling
   image:
     src: /logo.svg
     alt: Matryoshka.jl
