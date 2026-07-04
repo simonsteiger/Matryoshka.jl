@@ -8,7 +8,7 @@ brms for Turing.jl — formula-based Bayesian regression compiled to composable 
 
 Matryoshka is a thin front-end, not a modeling engine of its own. 
 
-The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(likelihood, priors, data)` lowers them into nested `DynamicPPL` submodels and hands back a **plain `DynamicPPL.Model`**.
+The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(likelihood, priors, data)` lowers them into nested `DynamicPPL` submodels.
 
 Everything downstream is for the inference backend to take care of (this very early version only tests Turing!).
 
