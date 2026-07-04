@@ -12,26 +12,40 @@ The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(
 
 Everything downstream is for the inference backend to take care of (tested only on Turing!).
 
-## Quickstart
+## Example
+
+The example below shows how to use Matryoshka to fit a single categorical predictor to a continuous response variable:
 
 ```julia
-using Matryoshka, Distributions, Turing
+using Matryoshka, Turing, FlexiChains
+using PalmerPenguins, DataFrames, CategoricalArrays
+using StatsBase: denserank
 
-# Can also be written without begin / end
-likelihood = @likelihood Normal begin
-    y ~ x + (1 | g)
-end
+# We will z-standardise the outcome
+standardise(x) = (x .- mean(x)) ./ std(x)
 
+data = DataFrame(PalmerPenguins.load())
+
+# There's one poor penguin with missings
+dropmissing!(data)
+transform!(data, :bill_length_mm => standardise => identity)
+transform!(data, :species => categorical => identity)
+
+# Bill length by species, Normal family
+likelihood = @likelihood Normal bill_length_mm ~ species
+
+# Standard Normal priors on intercept and species coefs
 priors = @priors begin
-    intercept ~ TDist(3)
+    intercept ~ Normal(0, 1)
     b ~ Normal(0, 1)
-    g.sd ~ Exponential(0.5)
 end
 
-m = model(likelihood, priors, data) # just a DynamicPPL.Model
-chain = sample(m, NUTS(), 1000) # Turing or otherwise take over
-m_new = model(m, newdata)
-predict(m_new, chain) # posterior predictive check
+# Now we create a `DynamicPPL.Model`, then Turing takes over
+bill_model = model(likelihood, priors, data)
+chain = sample(bill_model, NUTS(), 1000)
+
+# Spoiler alert: Adelie have shortest bills (they're cute!)
+summarystats(chain)
 ```
 
 Lots of models types are still unsupported in this v0 draft!

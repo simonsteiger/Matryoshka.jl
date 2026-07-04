@@ -1,7 +1,12 @@
 using Matryoshka
 using Documenter, DocumenterVitepress
+using PalmerPenguins, DataFrames
+using Turing, FlexiChains
+using CairoMakie
 
 DocMeta.setdocmeta!(Matryoshka, :DocTestSetup, :(using Matryoshka); recursive = true)
+
+ENV["DATADEPS_ALWAYS_ACCEPT"] = true
 
 makedocs(;
     sitename = "Matryoshka.jl",
@@ -11,6 +16,7 @@ makedocs(;
         repo = "https://github.com/simonsteiger/Matryoshka.jl",
         devbranch = "main",
         devurl = "dev",
+        # build_vitepress = false,
     ),
     pages = [
         "Home" => "index.md",
