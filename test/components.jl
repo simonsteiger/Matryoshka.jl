@@ -26,11 +26,11 @@ end
     @test [s[1] for s in slots] == [(:b, :x1), (:b, :x2)]
     @test all(s -> s[2] == (:b,), slots)
     # contribution check: condition coefficients, evaluate return value
-    # spike Q3 verdict: arraydist fallback -> single vector VarName `b`
+    # spike Q3 verdict: product_distribution fallback -> single vector VarName `b`
     b = [0.5, -1.0]
     retval, _ = DynamicPPL.evaluate!!(DynamicPPL.condition(m, b = b), DynamicPPL.VarInfo())
     @test retval == X * b
-    @model hand() = b ~ arraydist([Normal(0, 1), Normal(0, 5)])
+    @model hand() = b ~ product_distribution([Normal(0, 1), Normal(0, 5)])
     @test logjoint(m, (b = b,)) ≈ logjoint(hand(), (b = b,))
 end
 

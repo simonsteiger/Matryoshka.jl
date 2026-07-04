@@ -41,7 +41,7 @@ end
 
     @model function hand(x, y)
         intercept ~ Normal(0, 10)
-        b ~ arraydist([Normal(0, 1)])
+        b ~ product_distribution([Normal(0, 1)])
         sigma ~ Exponential(1)
         mu = intercept .+ x .* b[1]
         y ~ product_distribution(Normal.(mu, sigma))
@@ -64,7 +64,7 @@ end
     m = model(lik, pri, dfp)
     @model function handp(x, y)
         intercept ~ Normal(0, 5)
-        b ~ arraydist([Normal(0, 1)])
+        b ~ product_distribution([Normal(0, 1)])
         y ~ product_distribution(Poisson.(exp.(intercept .+ x .* b[1])))
     end
     θ = (intercept = 0.5, b = [0.8])
