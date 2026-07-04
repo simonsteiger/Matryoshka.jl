@@ -4,8 +4,7 @@ layout: home
 
 hero:
   name: "Matryoshka.jl"
-  text: "Composable Bayesian regression models"
-  tagline: Build nested statistical models from reusable components.
+  tagline: Compose submodels to build probabilistic models
   image:
     src: /logo.svg
     alt: Matryoshka.jl
