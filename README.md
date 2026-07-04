@@ -4,12 +4,13 @@ brms for Turing.jl — formula-based Bayesian regression compiled to composable 
 
 [![Build Status](https://github.com/simonsteiger/Matryoshka.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/simonsteiger/Matryoshka.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/simonsteiger/Matryoshka.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/simonsteiger/Matryoshka.jl)
-[![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)<a href="https://simonsteiger.github.io/Matryoshka.jl/dev"><img src="/docs/src/assets/logo.svg" align="right" alt="Matryoshka logo" style="height: 140px;"></a>
+[![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)<a href="https://simonsteiger.github.io/Matryoshka.jl/dev"><img src="/docs/src/assets/logo.svg" align="right" alt="Matryoshka logo" style="height: 180px;"></a>
 
 Matryoshka is a thin front-end, not a modeling engine of its own. 
 
-The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(likelihood, priors, data)` lowers them into nested `DynamicPPL` submodels and hands back a **plain `DynamicPPL.Model`**. 
-Everything downstream — `sample`, `predict`, chain objects — is for the inference backend to take care of (this very early version only tests Turing!).
+The macros `@likelihood` and `@priors` parse a formula and a prior spec; `model(likelihood, priors, data)` lowers them into nested `DynamicPPL` submodels and hands back a **plain `DynamicPPL.Model`**.
+
+Everything downstream is for the inference backend to take care of (this very early version only tests Turing!).
 
 ## Quickstart
 
