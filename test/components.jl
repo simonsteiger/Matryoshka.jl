@@ -31,9 +31,6 @@ end
     b = [0.5, -1.0]
     retval, _ = DynamicPPL.evaluate!!(DynamicPPL.condition(m, b = b), DynamicPPL.VarInfo())
     @test retval == X * b
-    # invariant: labels live on draws, never on the contribution passed up to
-    # core_model — X * b (b is Dim{:coef}-labeled) must degrade to a plain array
-    @test !(retval isa DimensionalData.AbstractDimArray)
     @model hand() = b ~ product_distribution([Normal(0, 1), Normal(0, 5)])
     @test logjoint(m, (b = b,)) ≈ logjoint(hand(), (b = b,))
     # labeled draws: b is a DimVector on dim :coef with the component's names
@@ -42,6 +39,14 @@ end
     @test DimensionalData.hasdim(draw.b, :coef)
     @test collect(DimensionalData.lookup(draw.b, :coef)) == [:x1, :x2]
     @test draw.b[At(:x1)] isa Float64
+    # invariant: labels live on draws, never on the contribution passed up to
+    # core_model. Condition on the genuinely-sampled, labeled draw (a real
+    # Dim{:coef} DimVector out of the labeled prior, not a hand-typed plain
+    # vector) so `X * b` inside the submodel body actually operates on a
+    # DimVector; the returned contribution must still degrade to plain.
+    labeled_retval, _ = DynamicPPL.evaluate!!(DynamicPPL.condition(m, b = draw.b), DynamicPPL.VarInfo())
+    @test !(labeled_retval isa DimensionalData.AbstractDimArray)
+    @test labeled_retval == X * collect(draw.b)
 end
 
 @testset "RandomIntercept" begin
@@ -55,13 +60,6 @@ end
     end
     θ = (sd = 0.7, z = [0.1, -0.2, 0.5])
     @test logjoint(m, θ) ≈ logjoint(hand([1, 1, 2, 3], 3), θ)
-    # invariant: labels live on draws, never on the contribution passed up to
-    # core_model — (sd .* z)[idx] gathers a Dim{group}-labeled z by row index,
-    # changing the axis from group-space to observation-space, so the result
-    # must degrade to a plain array (regression test for the stray-Dim bug
-    # this gather used to leak into `eta`)
-    retval, _ = DynamicPPL.evaluate!!(DynamicPPL.condition(m, θ), DynamicPPL.VarInfo())
-    @test !(retval isa DimensionalData.AbstractDimArray)
     @test priorslots(c)[1][1] == (:g, :sd)
     @test priorslots(c)[1][2] == (:sd,)
     # labeled draws: z is a DimVector on a dim named after the grouping
@@ -71,6 +69,18 @@ end
     @test DimensionalData.hasdim(draw.z, :g)
     @test collect(DimensionalData.lookup(draw.z, :g)) == [:a, :b, :c]
     @test draw.z[At(:b)] isa Float64
+    # invariant: labels live on draws, never on the contribution passed up to
+    # core_model — (sd .* z)[idx] gathers a Dim{group}-labeled z by row index,
+    # changing the axis from group-space to observation-space, so the result
+    # must degrade to a plain array (regression test for the stray-Dim bug
+    # this gather used to leak into `eta`). Condition on the genuinely-sampled,
+    # labeled draw (a real Dim{group} DimVector out of the labeled prior, not
+    # a hand-typed plain vector) so `z` inside the submodel body actually is
+    # a DimVector.
+    labeled_retval, _ =
+        DynamicPPL.evaluate!!(DynamicPPL.condition(m, sd = draw.sd, z = draw.z), DynamicPPL.VarInfo())
+    @test !(labeled_retval isa DimensionalData.AbstractDimArray)
+    @test labeled_retval == collect((draw.sd .* collect(draw.z))[c.idx])
 end
 
 @testset "rebuild" begin

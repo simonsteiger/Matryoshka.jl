@@ -35,7 +35,11 @@ priorslots(c::FixedEffects) =
 # coefficient names end to end (spec: 2026-07-05-labeled-parameters-design.md).
 @model function fe_submodel(X, priors, names)
     b ~ withdims(product_distribution(priors), Dim{:coef}(names))
-    return X * b
+    # `b` is a Dim{:coef}-labeled DimVector; `X * b` inherits that label via
+    # DimensionalData's matrix-vector product. The coefficient axis has no
+    # meaning once contracted against `X`, so strip the label with `collect`
+    # before returning — same pattern as RandomIntercept's contribution.
+    return collect(X * b)
 end
 submodel(c::FixedEffects, priors::Vector) = fe_submodel(c.X, priors, c.names)
 
