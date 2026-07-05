@@ -13,6 +13,7 @@ const GROUP = get(ENV, "GROUP", "All")
         include("introspection.jl")
         include("errors.jl")
         include("predict.jl")
+        include("names.jl")
         include("labels.jl")
     end
     if GROUP in ("All", "Recovery")

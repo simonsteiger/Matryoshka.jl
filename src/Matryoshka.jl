@@ -5,6 +5,8 @@ using Distributions
 using StatsModels: StatsModels
 using Tables: Tables
 
+include("names.jl")
+
 include("families/interface.jl")
 include("families/normal.jl")
 include("families/bernoulli.jl")
