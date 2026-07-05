@@ -2,7 +2,7 @@
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "393f1f9a02ff34b91bf93393adbb150f6315dc46"
+project_hash = "ae3c827d3942c889438361311c9fdb0c4529b1c9"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "d9aaef7c63466eee4de23b4d9dad03629df54bea"
@@ -503,6 +503,20 @@ version = "0.30.1"
     SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
     StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
+[[deps.DimensionalDistributions]]
+deps = ["DimensionalData", "Distributions", "Random", "Statistics", "StatsBase"]
+git-tree-sha1 = "4a6e340af421b0c96ff6a9986bfc3fab0c215c26"
+repo-rev = "dppl-0.41"
+repo-url = "https://github.com/simonsteiger/DimensionalDistributions.jl"
+uuid = "2d8b4b49-4cda-4573-8194-25db521b04c9"
+version = "0.1.0-DEV"
+weakdeps = ["AbstractPPL", "Bijectors", "DynamicPPL"]
+
+    [deps.DimensionalDistributions.extensions]
+    DimensionalDistributionsBijectorsAbstractPPLExt = ["Bijectors", "AbstractPPL"]
+    DimensionalDistributionsBijectorsExt = "Bijectors"
+    DimensionalDistributionsDynamicPPLExt = ["Bijectors", "DynamicPPL"]
+
 [[deps.DispatchDoctor]]
 deps = ["MacroTools", "Preferences"]
 git-tree-sha1 = "42cd00edaac86f941815fe557c1d01e11913e07c"
@@ -966,6 +980,12 @@ version = "0.4.3"
 deps = ["Base64", "JuliaSyntaxHighlighting", "StyledStrings"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 version = "1.11.0"
+
+[[deps.Matryoshka]]
+deps = ["DimensionalData", "DimensionalDistributions", "Distributions", "DynamicPPL", "StatsModels", "Tables"]
+path = ".."
+uuid = "5143e886-8edf-42c7-a933-0b437a307829"
+version = "1.0.0-DEV"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
