@@ -54,6 +54,13 @@ end
     @test logjoint(m, θ) ≈ logjoint(hand([1, 1, 2, 3], 3), θ)
     @test priorslots(c)[1][1] == (:g, :sd)
     @test priorslots(c)[1][2] == (:sd,)
+    # labeled draws: z is a DimVector on a dim named after the grouping
+    # variable, labels are sanitized levels
+    draw = NamedTuple(rand(m))
+    @test draw.z isa DimensionalData.AbstractDimVector
+    @test DimensionalData.hasdim(draw.z, :g)
+    @test collect(DimensionalData.lookup(draw.z, :g)) == [:a, :b, :c]
+    @test draw.z[At(:b)] isa Float64
 end
 
 @testset "rebuild" begin
