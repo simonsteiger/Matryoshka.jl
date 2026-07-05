@@ -36,7 +36,11 @@ priorslots(c::RandomIntercept) = [((c.group, :sd), (:sd,), Exponential(1))]
 @model function ri_submodel(idx, sd_prior, group_dim)
     sd ~ sd_prior
     z ~ withdims(filldist(Normal(), length(group_dim)), group_dim)
-    return (sd .* z)[idx]
+    # Gathering by `idx` changes the semantic axis from group-space to
+    # observation-space (rows repeat/reorder groups), so the group `Dim`
+    # label is no longer meaningful past this point — strip it with `collect`
+    # before returning, or it silently leaks into `eta` downstream.
+    return collect((sd .* z)[idx])
 end
 function submodel(c::RandomIntercept, sd_prior)
     labels = Symbol.(sanitize_level.(string.(c.levels)))
