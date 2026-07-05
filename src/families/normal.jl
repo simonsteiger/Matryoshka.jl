@@ -22,7 +22,9 @@ default_priors(::NormalFamily) = (sigma = Exponential(1),)
 
 @model function normal_obs(eta, priors, y)
     sigma ~ priors.sigma
-    y ~ product_distribution(Normal.(eta, sigma))  # identity link: mu == eta
+    # identity link: mu == eta. Dim{:obs} labels predict-mode draws per
+    # observation; conditioned plain-Vector y scores unchanged.
+    y ~ withdims(product_distribution(Normal.(eta, sigma)), Dim{:obs}(1:length(eta)))
     return nothing
 end
 obsmodel(::NormalFamily) = normal_obs

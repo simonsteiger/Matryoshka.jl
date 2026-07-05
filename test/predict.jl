@@ -1,5 +1,6 @@
 using Matryoshka
 using Distributions, DynamicPPL, Turing, StableRNGs, Test
+using DimensionalData: DimensionalData
 using Logging: Logging
 
 df = (
@@ -27,9 +28,18 @@ df = (
     # predictive draw is a length-2 vector, one entry per newdata row.
     FC = parentmodule(typeof(preds))
     @test @varname(y) in FC.parameters(preds)
-    yv = preds[@varname(y)]
+    # `y` draws are now Dim{:obs}-labeled DimVectors (Task 6), so plain
+    # `preds[vn]` would implicitly auto-stack them into one 3D DimArray
+    # (iter, chain, obs) — pass `stack = false` explicitly to keep the
+    # original per-draw-vector shape this block asserts on.
+    yv = preds[@varname(y), stack = false]
     @test size(yv, 1) == FC.niters(preds)
     @test all(v -> length(v) == 2, yv)
+
+    # predictions are obs-labeled, sized to newdata (2 rows in `newdata` above)
+    y_draws = preds[@varname(y), stack = true]
+    @test DimensionalData.hasdim(y_draws, :obs)
+    @test length(DimensionalData.lookup(y_draws, :obs)) == 2
 
     # new factor level errors in domain language
     err = try
