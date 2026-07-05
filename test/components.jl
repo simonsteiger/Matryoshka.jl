@@ -4,6 +4,7 @@ using Matryoshka: Intercept, FixedEffects, RandomIntercept,
 using Distributions, DynamicPPL, Turing, Test
 using StatsModels: StatsModels
 using Tables: Tables
+using DimensionalData: DimensionalData, At
 
 @testset "Intercept" begin
     c = Intercept(4)
@@ -32,6 +33,12 @@ end
     @test retval == X * b
     @model hand() = b ~ product_distribution([Normal(0, 1), Normal(0, 5)])
     @test logjoint(m, (b = b,)) ≈ logjoint(hand(), (b = b,))
+    # labeled draws: b is a DimVector on dim :coef with the component's names
+    draw = NamedTuple(rand(m))
+    @test draw.b isa DimensionalData.AbstractDimVector
+    @test DimensionalData.hasdim(draw.b, :coef)
+    @test collect(DimensionalData.lookup(draw.b, :coef)) == [:x1, :x2]
+    @test draw.b[At(:x1)] isa Float64
 end
 
 @testset "RandomIntercept" begin

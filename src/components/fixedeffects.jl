@@ -31,11 +31,13 @@ priorslots(c::FixedEffects) =
 
 # spike Q3 verdict (test/spike_notes.md): dict-style `b[n] ~ p` fails in DynamicPPL;
 # arraydist fallback yields a single vector-valued VarName `b` (not `b[1]`/`b[2]`).
-@model function fe_submodel(X, priors)
-    b ~ product_distribution(priors)
+# withdims labels each draw as a DimVector on the fixed :coef dim, so chains carry
+# coefficient names end to end (spec: 2026-07-05-labeled-parameters-design.md).
+@model function fe_submodel(X, priors, names)
+    b ~ withdims(product_distribution(priors), Dim{:coef}(names))
     return X * b
 end
-submodel(c::FixedEffects, priors::Vector) = fe_submodel(c.X, priors)
+submodel(c::FixedEffects, priors::Vector) = fe_submodel(c.X, priors, c.names)
 
 function rebuild(c::FixedEffects, tbl)
     X = StatsModels.modelcols(c.term, Tables.columntable(tbl))
