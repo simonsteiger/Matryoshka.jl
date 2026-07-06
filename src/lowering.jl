@@ -96,7 +96,8 @@ function lower(lik::Likelihood, tbl)
         X = Matrix{Float64}(StatsModels.modelcols(mt, cols))
         raw = StatsModels.coefnames(mt)
         raw isa Vector || (raw = [raw])
-        names = sanitize.(raw)
+        # force Vector{Symbol} for type stability (JET), otherwise Union{BV, V}
+        names = Symbol[sanitize(r) for r in raw]
         check_unique_labels(names, raw, "coefficient")
         comps = (comps..., FixedEffects(X, names, mt))
     end
