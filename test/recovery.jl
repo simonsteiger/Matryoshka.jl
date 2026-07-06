@@ -67,8 +67,12 @@ end
     chain = Logging.with_logger(Logging.NullLogger()) do
         sample(rng2, m, NUTS(), 1000; progress = false)
     end
+    # 30 groups is too few to recover the population sd 0.8; the model recovers the
+    # realized spread of the drawn group effects, so target std(u), not 0.8.
     check_numerical(
-        chain, ["intercept" => 1.0, "b[1]" => 0.5, "g.sd" => 0.8, "sigma" => 0.3]; atol = 0.2
+        chain,
+        ["intercept" => 1.0, "b[1]" => 0.5, "g.sd" => std(u), "sigma" => 0.3];
+        atol = 0.2,
     )
 
     # predictions from our model vs handwritten model, same chain params: KS
