@@ -79,7 +79,7 @@ function lower(lik::Likelihood, tbl)
             col = Tables.getcolumn(cols, t.group)
             levels = unique(col)
             check_unique_labels(
-                Symbol.(sanitize_level.(string.(levels))),
+                level_labels(levels),
                 string.(levels),
                 "level (grouping variable :$(t.group))",
             )

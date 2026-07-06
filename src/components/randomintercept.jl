@@ -43,7 +43,7 @@ priorslots(c::RandomIntercept) = [((c.group, :sd), (:sd,), Exponential(1))]
     return collect((sd .* z)[idx])
 end
 function submodel(c::RandomIntercept, sd_prior)
-    labels = Symbol.(sanitize_level.(string.(c.levels)))
+    labels = level_labels(c.levels)
     return ri_submodel(c.idx, sd_prior, Dim{c.group}(labels))
 end
 

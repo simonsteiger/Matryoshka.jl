@@ -9,6 +9,17 @@ const _LEVEL_SEP = ": "
 
 sanitize_level(s::AbstractString) = replace(s, r"[^A-Za-z0-9_]" => "")
 
+# Shared by lowering.jl (collision check) and RandomIntercept.submodel (Dim
+# labels): both need the sanitized level labels for a grouping variable's raw
+# levels, computed from separate call sites since RandomIntercept must keep
+# raw `levels` in its struct (rebuild matches raw data values).
+level_labels(levels) = Symbol.(sanitize_level.(string.(levels)))
+
+# Splits on `_INTERACTION_SEP` before parsing `_LEVEL_SEP` within each part,
+# assuming StatsModels' canonical `": "`/`" & "` spacing. A factor level string
+# that happens to contain literal `" & "` or `": "` would mis-parse; accepted
+# as a pathological edge case, largely defused by `sanitize_level` stripping
+# special characters from the level portion anyway.
 function sanitize(coefname::AbstractString)
     parts = map(split(coefname, _INTERACTION_SEP)) do part
         r = findfirst(_LEVEL_SEP, part)

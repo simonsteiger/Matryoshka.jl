@@ -46,7 +46,9 @@ function compprefix end
 Build `c`'s own `@model`, parameterised by `prior` (the resolved prior, or
 vector of priors, for `c`'s slot(s) — as targeted by `priorslots`). The
 submodel samples its own parameter(s) and returns its n-vector contribution to
-the linear predictor.
+the linear predictor. Only draws sampled via `~` may carry `withdims` labels;
+the n-vector contribution returned to `core_model` must be a plain, unlabeled
+array (`collect` it first if it was derived from a labeled `DimArray`).
 
 # Example
 ```julia
