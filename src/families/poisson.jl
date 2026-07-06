@@ -19,7 +19,7 @@ links(::PoissonFamily) = (mu = :log,)
 default_priors(::PoissonFamily) = NamedTuple()
 
 @model function poisson_obs(eta, priors, y)
-    y ~ product_distribution(Poisson.(exp.(eta)))
+    y ~ withdims(product_distribution(Poisson.(exp.(eta))), Dim{:obs}(1:length(eta)))
     return nothing
 end
 obsmodel(::PoissonFamily) = poisson_obs

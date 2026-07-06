@@ -68,14 +68,21 @@ function lower(lik::Likelihood, tbl)
     # type at each step instead of recursing on the same abstract type forever.
     comps = ()
     fixed_terms = ()
-    # StatsModels ≥ 0.7: the concrete RHS after apply_schema is a MatrixTerm; its
-    # constituent terms are exposed via `StatsModels.terms` (no `terms_tuple` accessor).
-    for t in StatsModels.terms(fc.rhs)
+    # `fc.rhs` is the concrete `MatrixTerm` after `apply_schema`; its own `.terms`
+    # tuple preserves `InteractionTerm`s intact. `StatsModels.terms` instead
+    # *decomposes* `InteractionTerm`s into their constituent variables, which
+    # silently dropped interactions from the design matrix (v0 bug).
+    for t in fc.rhs.terms
         if t isa StatsModels.InterceptTerm{true}
             comps = (comps..., Intercept(n))
         elseif t isa GroupTerm
             col = Tables.getcolumn(cols, t.group)
             levels = unique(col)
+            check_unique_labels(
+                level_labels(levels),
+                string.(levels),
+                "level (grouping variable :$(t.group))",
+            )
             idx = [findfirst(==(v), levels) for v in col]
             comps = (comps..., RandomIntercept(t.group, idx, collect(levels)))
         elseif t isa StatsModels.InterceptTerm{false}
@@ -87,8 +94,11 @@ function lower(lik::Likelihood, tbl)
     if !isempty(fixed_terms)
         mt = StatsModels.collect_matrix_terms(StatsModels.TupleTerm(fixed_terms))
         X = Matrix{Float64}(StatsModels.modelcols(mt, cols))
-        names = Symbol.(StatsModels.coefnames(mt))
-        names isa Vector || (names = [names])
+        raw = StatsModels.coefnames(mt)
+        raw isa Vector || (raw = [raw])
+        # force Vector{Symbol} for type stability (JET), otherwise Union{BV, V}
+        names = Symbol[sanitize(r) for r in raw]
+        check_unique_labels(names, raw, "coefficient")
         comps = (comps..., FixedEffects(X, names, mt))
     end
     isempty(comps) && throw(

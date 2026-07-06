@@ -70,3 +70,30 @@ chain = sample(bill_model, NUTS(), 1000)
 # Adelie have shortest bills (they're cute!)
 summarystats(chain)
 ```
+
+## Parameter names and labels
+
+Vector-valued parameters carry DimensionalData labels end to end: coefficients
+(`b`) are labeled on the `:coef` dimension, group-level effects (`g.z`) on a
+dimension named after the grouping variable, and predictions on `:obs`.
+Coefficient labels are sanitized StatsModels coefficient names:
+
+| term | StatsModels name | label / prior target |
+|---|---|---|
+| continuous | `body_mass_g` | `body_mass_g` |
+| categorical dummy | `species: Gentoo` | `species_Gentoo` |
+| interaction | `species: Gentoo & body_mass_g` | `species_Gentoo__body_mass_g` |
+
+Rules: `": "` becomes `_`; `" & "` becomes `__`; level strings are stripped to
+identifier-safe characters (`"Very High"` → `VeryHigh`). If two sanitized names
+collide, `model()` errors and asks you to rename the offending column or level.
+
+Prior targets follow the same names: the chain's `b[At(:species_Gentoo)]` is the
+`@priors` target `b.species_Gentoo` — one namespace, learned once. Use
+`default_priors(lik, df)` to list every target for your model and data.
+
+Access by label (canonical form):
+
+    chain[@varname(b), stack = true][coef = At(:body_mass_g)]
+
+Always pass `stack = true` explicitly when indexing array-valued parameters.

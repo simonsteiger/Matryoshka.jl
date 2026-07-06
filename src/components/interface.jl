@@ -8,6 +8,10 @@ functions: `compprefix`, `submodel`, `priorslots`, `rebuild`. New term types
 (e.g. Gaussian-process or smooth terms) are added by subtyping
 `AbstractComponent`, implementing these four, and adding a `lower` dispatch
 (see `src/lowering.jl`) that turns a matching formula term into the component.
+New term types should label vector-valued parameters by wrapping their prior in
+`withdims` (see `FixedEffects`/`RandomIntercept` for the pattern): fixed-effect
+coefficients use the fixed `:coef` dim, group-level parameters a dim named after
+the grouping variable.
 
 # Example
 ```julia
@@ -42,7 +46,9 @@ function compprefix end
 Build `c`'s own `@model`, parameterised by `prior` (the resolved prior, or
 vector of priors, for `c`'s slot(s) — as targeted by `priorslots`). The
 submodel samples its own parameter(s) and returns its n-vector contribution to
-the linear predictor.
+the linear predictor. Only draws sampled via `~` may carry `withdims` labels;
+the n-vector contribution returned to `core_model` must be a plain, unlabeled
+array (`collect` it first if it was derived from a labeled `DimArray`).
 
 # Example
 ```julia

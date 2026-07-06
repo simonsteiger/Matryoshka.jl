@@ -25,7 +25,7 @@ default_priors(::BernoulliFamily) = NamedTuple()
 # on the log-odds scale directly, so extreme eta never saturates to p == 1.0
 # (which would trip Bernoulli's check_args under ForwardDiff Duals).
 @model function bernoulli_obs(eta, priors, y)
-    y ~ product_distribution(BernoulliLogit.(eta))
+    y ~ withdims(product_distribution(BernoulliLogit.(eta)), Dim{:obs}(1:length(eta)))
     return nothing
 end
 obsmodel(::BernoulliFamily) = bernoulli_obs

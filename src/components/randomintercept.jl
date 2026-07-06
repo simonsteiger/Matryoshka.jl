@@ -26,12 +26,26 @@ end
 compprefix(c::RandomIntercept) = c.group
 priorslots(c::RandomIntercept) = [((c.group, :sd), (:sd,), Exponential(1))]
 
-@model function ri_submodel(idx, nlevels, sd_prior)
+# z draws are labeled DimVectors on a dim named after the grouping variable
+# (`(1 | species)` → Dim{:species}), with sanitized level labels — matches
+# ArviZ coord conventions (spec: 2026-07-05-labeled-parameters-design.md).
+# Raw levels stay in the struct: rebuild matches raw data values; sanitized
+# labels are cosmetic and derived here. Dim{c.group} is built from a runtime
+# Symbol (type-unstable), but only at model-construction time — never on the
+# log-density path.
+@model function ri_submodel(idx, sd_prior, group_dim)
     sd ~ sd_prior
-    z ~ filldist(Normal(), nlevels)
-    return (sd .* z)[idx]
+    z ~ withdims(filldist(Normal(), length(group_dim)), group_dim)
+    # Gathering by `idx` changes the semantic axis from group-space to
+    # observation-space (rows repeat/reorder groups), so the group `Dim`
+    # label is no longer meaningful past this point — strip it with `collect`
+    # before returning, or it silently leaks into `eta` downstream.
+    return collect((sd .* z)[idx])
 end
-submodel(c::RandomIntercept, sd_prior) = ri_submodel(c.idx, length(c.levels), sd_prior)
+function submodel(c::RandomIntercept, sd_prior)
+    labels = level_labels(c.levels)
+    return ri_submodel(c.idx, sd_prior, Dim{c.group}(labels))
+end
 
 function rebuild(c::RandomIntercept, tbl)
     col = Tables.getcolumn(Tables.columntable(tbl), c.group)

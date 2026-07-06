@@ -4,6 +4,10 @@ using DynamicPPL: DynamicPPL, @model, to_submodel, filldist, arraydist
 using Distributions
 using StatsModels: StatsModels
 using Tables: Tables
+using DimensionalData: DimensionalData, Dim
+using DimensionalDistributions: withdims
+
+include("names.jl")
 
 include("families/interface.jl")
 include("families/normal.jl")
