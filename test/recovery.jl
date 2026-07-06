@@ -79,15 +79,17 @@ end
     m_new = model(m, (x = x[1:50], g = g[1:50]))
     preds = predict(StableRNG(7), m_new, chain)
     # extract predicted y draws for obs 1 (y is a single vector-valued VarName;
-    # each draw is a length-50 vector, one entry per newdata row — see
-    # test/predict.jl) and compare against normal draws implied by chain means
-    # (coarse distributional check)
-    ydraws = vec(getindex.(preds[@varname(y)], 1))
+    # preds[@varname(y)] is a DimArray{Float64} with dims (iter, chain, obs) —
+    # elements are scalars, so `getindex.(arr, 1)` is a no-op (v[1] == v for a
+    # number) and `vec` would flatten *all* obs, not just obs 1. Select the
+    # :obs dim directly instead.
+    ydraws = vec(preds[@varname(y)][obs = 1])
     # obs 1 belongs to group g[1] == "1"; unique(g)-first-appearance order puts
-    # that group at position 1 in the "g.z" vector (see src/lowering.jl) — add
-    # its non-centered random-intercept contribution sd*z[1] (per-draw product,
+    # that group at position 1 in the "g.z" DimArray (dims: iter, chain, g) —
+    # select the :g dim directly (same no-op pitfall as above) to get its
+    # non-centered random-intercept contribution sd*z[1] (per-draw product,
     # not mean(sd)*mean(z)) so μ̂ is apples-to-apples with predict()'s ydraws.
-    z1 = getindex.(resolve_param(chain, "g.z"), 1)
+    z1 = vec(resolve_param(chain, "g.z")[g = 1])
     sd_g = resolve_param(chain, "g.sd")
     μ̂ = mean(resolve_param(chain, "intercept")) + x[1] * mean(resolve_param(chain, "b[1]")) +
         mean(sd_g .* z1)
