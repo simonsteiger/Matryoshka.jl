@@ -1,6 +1,7 @@
 using Matryoshka
 using Distributions, DynamicPPL, Turing, StableRNGs, Statistics, Test
 using Logging: Logging
+using DimensionalData: DimensionalData, At
 include("testutils.jl")
 using .MatryoshkaTestUtils: check_numerical, resolve_param, two_sample_ks
 
@@ -104,4 +105,41 @@ end
     @test FC.niters(pchain) == 200
     pnames = string.(FC.parameters(pchain))
     @test all(nm -> nm in pnames, ["intercept", "b", "sigma"])
+end
+
+@testset "recovery: categorical + continuous + interaction, labeled access" begin
+    rng = StableRNG(468)
+    n = 4000
+    grp = rand(rng, ["lo", "hi"], n)
+    x = randn(rng, n)
+    d = Int.(grp .== "hi")
+    # y = 1.0 + 0.5*hi + 2.0*x - 1.5*hi*x + eps
+    y = 1.0 .+ 0.5 .* d .+ 2.0 .* x .- 1.5 .* d .* x .+ 0.3 .* randn(rng, n)
+    df = (y = y, grp = grp, x = x)
+    lik = @likelihood Normal y ~ grp * x
+    pri = @priors begin
+        intercept ~ Normal(0, 5)
+        b ~ Normal(0, 5)
+        sigma ~ Exponential(1)
+    end
+    m = model(lik, pri, df)
+    chn = sample(StableRNG(469), m, NUTS(), 500; progress = false)
+    b_draws = chn[@varname(b), stack = true]
+    labels = collect(DimensionalData.lookup(b_draws, :coef))
+    # Which level StatsModels picks as dummy-coding reference decides the
+    # parameterization. Truth: y = 1 + 0.5·[hi] + 2x − 1.5·[hi]x.
+    # Reference "hi" (dummy grp_lo): y = 1.5 − 0.5·[lo] + 0.5x + 1.5·[lo]x.
+    # Both branches are exact algebra of the same truth — either passes.
+    if :grp_lo in labels
+        @test mean(chn[@varname(intercept)]) ≈ 1.5 atol = 0.15
+        @test mean(b_draws[coef = At(:grp_lo)]) ≈ -0.5 atol = 0.15
+        @test mean(b_draws[coef = At(:x)]) ≈ 0.5 atol = 0.15
+        @test mean(b_draws[coef = At(:grp_lo__x)]) ≈ 1.5 atol = 0.15
+    else
+        @test :grp_hi in labels
+        @test mean(chn[@varname(intercept)]) ≈ 1.0 atol = 0.15
+        @test mean(b_draws[coef = At(:grp_hi)]) ≈ 0.5 atol = 0.15
+        @test mean(b_draws[coef = At(:x)]) ≈ 2.0 atol = 0.15
+        @test mean(b_draws[coef = At(:grp_hi__x)]) ≈ -1.5 atol = 0.15
+    end
 end

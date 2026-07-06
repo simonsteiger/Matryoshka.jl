@@ -1,9 +1,15 @@
 using JET, Matryoshka, Distributions, DynamicPPL, Test
 
-df = (y = [1.0, 2.0, 0.5], x = [0.1, 0.9, 0.4], g = ["a", "b", "a"])
-lik = @likelihood Normal y ~ x + (1 | g)
+# All-sites fixture: `x * z` exercises Dim{:coef} with an interaction label
+# (b.x__z), `(1 | g)` exercises the group dim, and the Normal obsmodel
+# exercises Dim{:obs}.
+df = (y = [1.0, 2.0, 0.5, 1.4], x = [0.1, 0.9, 0.4, 0.7], z = [0.3, 0.6, 0.2, 0.9], g = ["a", "b", "a", "b"])
+lik = @likelihood Normal y ~ x * z + (1 | g)
 pri = @priors b ~ Normal(0, 1)
 
+# Known caveat: JET may fail on the submodel wiring until DynamicPPL v0.42.1
+# (upstream submodel bugs, fixed there). If a failure here also reproduces on
+# main (pre-labels), it is upstream — record, do not debug in this package.
 @testset "JET" begin
     m = model(lik, pri, df)
     # @test_opt fails structurally (StatsModels construction-time dispatch; DynamicPPL

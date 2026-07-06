@@ -2,7 +2,7 @@
 
 julia_version = "1.12.6"
 manifest_format = "2.0"
-project_hash = "44dad6c53d1286a19d214994c2e90a08ca5d51d5"
+project_hash = "c85f7da31515ab461d7d39271f37cabac3897f72"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "d9aaef7c63466eee4de23b4d9dad03629df54bea"
@@ -14,6 +14,11 @@ weakdeps = ["ChainRulesCore", "ConstructionBase", "EnzymeCore"]
     ADTypesChainRulesCoreExt = "ChainRulesCore"
     ADTypesConstructionBaseExt = "ConstructionBase"
     ADTypesEnzymeCoreExt = "EnzymeCore"
+
+[[deps.ANSIColoredPrinters]]
+git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
+uuid = "a4c015fc-c6ff-483c-b24f-f7ea428134e9"
+version = "0.0.1"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -734,6 +739,23 @@ deps = ["Combinatorics", "Distributions", "LinearAlgebra", "Printf", "Random", "
 git-tree-sha1 = "7040110b339e4a35a78e12ad3000d9708bb86a60"
 uuid = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
 version = "0.11.8"
+
+[[deps.InferenceObjects]]
+deps = ["ANSIColoredPrinters", "Dates", "DimensionalData", "Random", "Tables"]
+git-tree-sha1 = "dad59fcae3faa962c8fd3c570eae860232862fff"
+uuid = "b5cf5a8d-e756-4ee3-b014-01d49d192c00"
+version = "0.4.17"
+
+    [deps.InferenceObjects.extensions]
+    InferenceObjectsMCMCDiagnosticToolsExt = "MCMCDiagnosticTools"
+    InferenceObjectsNCDatasetsExt = "NCDatasets"
+    InferenceObjectsPosteriorStatsExt = ["PosteriorStats", "StatsBase"]
+
+    [deps.InferenceObjects.weakdeps]
+    MCMCDiagnosticTools = "be115224-59cd-429b-ad48-344e309966f0"
+    NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
+    PosteriorStats = "7f36be82-ad55-44ba-a5c0-b8b5480d7aa5"
+    StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [[deps.InitialValues]]
 git-tree-sha1 = "4da0f88e9a39111c2fa3add390ab15f3a44f3ca3"
