@@ -92,6 +92,8 @@ pri = @priors begin
 end
 m = model(lik, pri, df)
 chain = sample(m, NUTS(), 100; progress = false)
+chain[@varname(b), stack = true]            # (iter, chain, coef) with labeled coef axis
+chain[@varname(b), stack = true][coef = At(:x)]  # one coefficient's draws
 ```
 """
 function model(lik::Likelihood, pri::Priors, tbl)
